@@ -29,9 +29,23 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
 
+    const userCollection = client.db("tastycDB").collection("users");
     const menuCollection = client.db("tastycDB").collection("menu");
     const reviewCollection = client.db("tastycDB").collection("reviews");
     const cartCollection = client.db("tastycDB").collection("carts");
+
+    // user post
+    app.post('/users', async(req, res) => {
+      const user = req.body;
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    })
+
+    // user get
+    app.get('/users', async(req, res) => {
+      const result = await userCollection.find().toArray();
+      res.send(result);
+    })
 
     // menu get
     app.get('/menu', async(req, res) => {
@@ -59,6 +73,8 @@ async function run() {
       const result = await cartCollection.insertOne(foodItem);
       res.send(result);
     })
+
+    
 
     // cart delete
     app.delete('/carts/:id', async(req, res) => {
