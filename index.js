@@ -34,6 +34,7 @@ async function run() {
     const menuCollection = client.db("tastycDB").collection("menu");
     const reviewCollection = client.db("tastycDB").collection("reviews");
     const cartCollection = client.db("tastycDB").collection("carts");
+    const paymentCollection = client.db("tastycDB").collection("payments");
 
   // middlewares
   const verifyToken = (req, res, next) => {
@@ -198,7 +199,7 @@ async function run() {
       const { price } = req.body;
       const amount = parseInt(price * 100);
 
-      console.log("amount inside database:::", amount);
+      // console.log("amount inside database:::", amount);
 
       const paymentIntent = await stripe.paymentIntents.create({
         amount: amount,
@@ -209,6 +210,20 @@ async function run() {
       res.send({
         clientSecret: paymentIntent.client_secret
       })
+    })
+
+    // payment
+    app.post('/payments', async(req, res) => {
+      const payment = req.body;
+      const paymentResult = await paymentCollection.insertOne(payment);
+
+      // delete cart items
+      const query = { _id: {
+        $in: payment.cart_ids.map( id => new ObjectId(id))
+      }};
+      const deleteResult = await cartCollection.deleteMany(query);
+      // console.log('payment info:', payment);
+      res.send({paymentResult, deleteResult})
     })
 
 
